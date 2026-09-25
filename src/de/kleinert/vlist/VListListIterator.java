@@ -52,6 +52,9 @@ class VListListIterator<T> implements ListIterator<T> {
             //noinspection unchecked
             return (T) segment.elements[offset];
         }
+
+        // We are at the beginning of a segment and thus need to go to the previous segment.
+        // Since VList segments are singly-linked, we need to iterate the list from the beginning up to the index.
         i--;
         advance(i);
         return next();

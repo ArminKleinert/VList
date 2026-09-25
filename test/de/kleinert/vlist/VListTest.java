@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 class VListTest {
     @Test
@@ -48,7 +49,9 @@ class VListTest {
         Assertions.assertThrows(IndexOutOfBoundsException.class, () -> vlst.get(vlst.size()));
         Assertions.assertThrows(IndexOutOfBoundsException.class, () -> VList.of().get(0));
     }
-    @Test void equalityToVList() {
+
+    @Test
+    void equalityToVList() {
         Assertions.assertEquals(VList.of(), VList.of());
         Assertions.assertEquals(VList.of(1), VList.of(1));
 
@@ -56,21 +59,36 @@ class VListTest {
         Assertions.assertNotEquals(VList.of(1), VList.of());
         Assertions.assertNotEquals(VList.of(), VList.of(1));
     }
-    @Test void equalityToOtherLists() {
+
+    @Test
+    void equalityToOtherLists() {
         Assertions.assertEquals(List.of(), VList.of());
         Assertions.assertEquals(List.of(1), VList.of(1));
 
         Assertions.assertNotEquals(List.of(1), VList.of());
         Assertions.assertNotEquals(List.of(), VList.of(1));
     }
-    @Test void cons() {
+
+    @Test
+    void cons() {
         // General test; Order of insertion
-        Assertions.assertEquals(List.of(1,2,3), VList.of().cons(3).cons(2).cons(1));
+        Assertions.assertEquals(List.of(1, 2, 3), VList.of().cons(3).cons(2).cons(1));
 
         // Test immutability
         var vlst = VList.of().cons(3).cons(2);
-        Assertions.assertEquals(List.of(2,3),vlst);
+        Assertions.assertEquals(List.of(2, 3), vlst);
         vlst.cons(1);
-        Assertions.assertEquals(List.of(2,3),vlst);
+        Assertions.assertEquals(List.of(2, 3), vlst);
+    }
+
+    @Test
+    void stream() {
+        // General test; Order of insertion
+        Assertions.assertEquals(
+                List.of(1, 2, 3),
+                VList.of(1, 3, 3, 3, 3, 3, 2, 2, 4).stream()
+                        .sorted().distinct()
+                        .limit(3)
+                        .collect(Collectors.toUnmodifiableList()));
     }
 }

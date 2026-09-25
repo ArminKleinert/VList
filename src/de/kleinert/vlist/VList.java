@@ -9,7 +9,7 @@ import java.util.*;
  *
  * @param <T>
  */
-public class VList<T> extends AbstractList<T> {
+public class VList<T> extends AbstractSequentialList<T> {
     private final @Nullable Segment base;
     private final int offset;
 
@@ -63,7 +63,9 @@ public class VList<T> extends AbstractList<T> {
         this.offset = offset + 1;
     }
 
-    public static<T> VList<T> empty() {return new VList<>();}
+    public static <T> VList<T> empty() {
+        return new VList<>();
+    }
 
     @Override
     public @NotNull Iterator<T> iterator() {
@@ -119,8 +121,11 @@ public class VList<T> extends AbstractList<T> {
         return listIntoSegments(elements, base, offset - 1);
     }
 
+    public VList<T> append(final T element) {
+        return appendAll(List.of(element));
+    }
 
-    public VList<T> append(final @NotNull List<T> elements) {
+    public VList<T> appendAll(final @NotNull List<T> elements) {
         return listToVList(elements).prepend(this);
     }
 
@@ -133,11 +138,14 @@ public class VList<T> extends AbstractList<T> {
      *     tail([[eN, eN-1, ...], ...]) = [[eN-1, ...], ...]
      * </pre>
      *
-     * @return
+     * @return The list without the first element.
      */
     public VList<T> tail() {
         if (base == null) return this;
-        if (offset == base.elements.length) return new VList<>(base.next, 0);
+        if (offset == base.elements.length) {
+            if (base.next == null) return empty();
+            else return new VList<>(base.next, 0);
+        }
         return new VList<>(base, offset + 1);
     }
 
@@ -189,31 +197,6 @@ public class VList<T> extends AbstractList<T> {
         return new VList<>(seg, offset + 1);
     }
 
-    private <T> VList<T> listIntoSegments1(
-            final @NotNull List<T> inputList,
-            final @Nullable Segment mutableSegment,
-            int offset) {
-        if (inputList.isEmpty()) {
-            return new VList<>(null, 0);
-        }
-
-        var inputIterator = inputList.listIterator(inputList.size());
-        var seg = mutableSegment == null ? new Segment(null, new Object[1]) : mutableSegment;
-
-        while (true) {
-            while (inputIterator.hasPrevious() && offset >= 0) {
-                seg.elements[offset] = inputIterator.previous();
-                offset--;
-            }
-            if (!inputIterator.hasPrevious()) break;
-            var elements = new Object[seg.elements.length * 2];
-            offset = elements.length - 1;
-            seg = new Segment(seg, elements);
-        }
-
-        return new VList<>(seg, offset + 1);
-    }
-
     /**
      *
      * @param inputList
@@ -228,7 +211,7 @@ public class VList<T> extends AbstractList<T> {
 
     @SafeVarargs
     public static <T> VList<T> of(T... elements) {
-        if (elements.length==0)return empty();
+        if (elements.length == 0) return empty();
         return new VList<>(elements);
     }
 
@@ -255,10 +238,5 @@ public class VList<T> extends AbstractList<T> {
     @Override
     public @NotNull ListIterator<T> listIterator(final int i) {
         return new VListListIterator<>(base, offset, i);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
     }
 }
