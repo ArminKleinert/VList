@@ -21,7 +21,7 @@ public class VList<T> extends AbstractList<T> {
     /**
      *
      */
-    public VList() {
+    private VList() {
         this(List.of());
     }
 
@@ -29,7 +29,7 @@ public class VList<T> extends AbstractList<T> {
      *
      * @param elements
      */
-    public VList(final T[] elements) {
+    private VList(final T[] elements) {
         this(Arrays.asList(elements));
     }
 
@@ -62,6 +62,8 @@ public class VList<T> extends AbstractList<T> {
         base = seg;
         this.offset = offset + 1;
     }
+
+    public static<T> VList<T> empty() {return new VList<>();}
 
     @Override
     public @NotNull Iterator<T> iterator() {
@@ -115,6 +117,11 @@ public class VList<T> extends AbstractList<T> {
      */
     public VList<T> prepend(final @NotNull List<T> elements) {
         return listIntoSegments(elements, base, offset - 1);
+    }
+
+
+    public VList<T> append(final @NotNull List<T> elements) {
+        return listToVList(elements).prepend(this);
     }
 
     /**
@@ -214,14 +221,22 @@ public class VList<T> extends AbstractList<T> {
      * @return
      */
     public static <T> VList<T> listToVList(final @NotNull List<T> inputList) {
+        if (inputList instanceof VList<?>) return (VList<T>) inputList;
+        if (inputList.isEmpty()) return empty();
         return listIntoSegments(inputList, null, 0);
+    }
+
+    @SafeVarargs
+    public static <T> VList<T> of(T... elements) {
+        if (elements.length==0)return empty();
+        return new VList<>(elements);
     }
 
     /**
      *
      * @return
      */
-    public @NotNull List<@NotNull List<T>> getSegments() {
+    private @NotNull List<@NotNull List<T>> getSegments() {
         var res = new ArrayList<List<T>>();
         var seg = base;
         while (seg != null) {
@@ -240,5 +255,10 @@ public class VList<T> extends AbstractList<T> {
     @Override
     public @NotNull ListIterator<T> listIterator(final int i) {
         return new VListListIterator<>(base, offset, i);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 }

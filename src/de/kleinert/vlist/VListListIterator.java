@@ -21,7 +21,7 @@ class VListListIterator<T> implements ListIterator<T> {
 
     @Override
     public boolean hasNext() {
-        return segment == null;
+        return segment != null;
     }
 
     @Override
