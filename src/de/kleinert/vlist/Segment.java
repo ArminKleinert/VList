@@ -29,4 +29,12 @@ class Segment {
         result = 31 * result + Arrays.hashCode(elements);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Segment.class.getSimpleName() + "[", "]")
+                .add("next=" + next)
+                .add("elements=" + Arrays.toString(elements))
+                .toString();
+    }
 }

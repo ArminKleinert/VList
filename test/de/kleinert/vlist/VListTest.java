@@ -1,5 +1,6 @@
 package de.kleinert.vlist;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +56,6 @@ class VListTest {
         Assertions.assertEquals(VList.of(), VList.of());
         Assertions.assertEquals(VList.of(1), VList.of(1));
 
-
         Assertions.assertNotEquals(VList.of(1), VList.of());
         Assertions.assertNotEquals(VList.of(), VList.of(1));
     }
@@ -82,6 +82,30 @@ class VListTest {
     }
 
     @Test
+    public void prepend() {
+        Assertions.assertEquals(
+                List.of(1, 2, 3), VList.of().prepend(List.of(1, 2, 3)));
+        Assertions.assertEquals(
+                List.of(3, 4, 5), VList.of(3, 4, 5).prepend(List.of()));
+        Assertions.assertEquals(
+                List.of(1, 2, 3, 4, 5), VList.of(3, 4, 5).prepend(List.of(1, 2)));
+    }
+
+    @Test
+    public void append() {
+        Assertions.assertEquals(
+                List.of(1, 2, 3, 4, 5), VList.of(1, 2, 3).append(4).append(5));
+    }
+
+    @Test
+    public void appendAll() {
+        Assertions.assertEquals(
+                List.of(1, 2, 3), VList.of(1, 2, 3).appendAll(List.of()));
+        Assertions.assertEquals(
+                List.of(1, 2, 3, 4, 5), VList.of(1, 2, 3).appendAll(List.of(4, 5)));
+    }
+
+    @Test
     void stream() {
         // General test; Order of insertion
         Assertions.assertEquals(
@@ -90,5 +114,120 @@ class VListTest {
                         .sorted().distinct()
                         .limit(3)
                         .collect(Collectors.toUnmodifiableList()));
+    }
+
+    @Test
+    public void toArray() {
+        Assertions.assertArrayEquals(
+                new Object[]{},
+                VList.of().toArray());
+        Assertions.assertArrayEquals(
+                new Integer[]{},
+                VList.<Integer>of().toArray(new Integer[0]));
+        Assertions.assertArrayEquals(
+                new Object[]{1, 2, 3},
+                VList.of(1, 2, 3).toArray());
+        Assertions.assertArrayEquals(
+                new Integer[]{1, 2, 3},
+                VList.of(1, 2, 3).toArray(new Integer[0]));
+    }
+
+    @Test
+    public void containsAll() {
+        Assertions.assertTrue(VList.of().containsAll(List.of()));
+        Assertions.assertTrue(VList.of(1, 2, 3).containsAll(List.<Integer>of()));
+        Assertions.assertTrue(VList.of(1, 2, 3).containsAll(List.of(1, 3)));
+        Assertions.assertTrue(VList.of(1, 2, 3).containsAll(List.of(1, 2, 3)));
+
+        Assertions.assertFalse(VList.of().containsAll(List.of(1, 2)));// Empty list contains nothing
+        Assertions.assertFalse(VList.of(1, 2, 3).containsAll(List.of(4, 5))); // No common subset
+        Assertions.assertFalse(VList.of(1, 2, 3).containsAll(List.of(1, 2, 3, 4))); // Common subset, but not full subset
+    }
+
+    @Test
+    public void isEmpty() {
+        Assertions.assertTrue(VList.empty().isEmpty());
+        Assertions.assertTrue(VList.of().isEmpty());
+        Assertions.assertTrue(VList.listToVList(List.of()).isEmpty());
+
+        Assertions.assertFalse(VList.of(1, 2, 3).isEmpty());
+        Assertions.assertFalse(VList.listToVList(List.of(1, 2, 3)).isEmpty());
+    }
+
+    @Test
+    public void contains() {
+        Assertions.assertTrue(VList.of(1, 2, 3).contains(1));
+        Assertions.assertTrue(VList.of(1, 2, 3).contains(3));
+
+        Assertions.assertFalse(VList.of().contains(1));
+        Assertions.assertFalse(VList.of(1, 2, 3).contains(4));
+    }
+
+    @Test
+    public void indexOf() {
+
+    }
+
+    @Test
+    public void lastIndexOf() {
+
+    }
+
+    @Test
+    public void listIterator() {
+
+    }
+
+    @Test
+    public void add() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).add(4));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).add(2, 4));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).add(4));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).add(2, 4));
+    }
+
+    @Test
+    public void addAll() {
+        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).addAll(List.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).addAll(List.of(4, 5, 6)));
+        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).addAll(VList.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).addAll(VList.of(4, 5, 6)));
+
+        Assertions.assertDoesNotThrow(() -> VList.listToVList(List.of(1, 2, 3)).addAll(List.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).addAll(List.of(4, 5, 6)));
+        Assertions.assertDoesNotThrow(() -> VList.listToVList(List.of(1, 2, 3)).addAll(VList.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).addAll(VList.of(4, 5, 6)));
+    }
+
+
+    @Test
+    public void removeAll() {
+        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).removeAll(List.<Integer>of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).removeAll(List.of(1, 2, 3)));
+    }
+
+    @Test
+    public void retainAll() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).retainAll(List.<Integer>of()));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).retainAll(List.of(4)));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).retainAll(List.of(3)));
+    }
+
+    @Test
+    public void clear() {
+        Assertions.assertDoesNotThrow(() -> VList.of().clear());
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).clear());
+    }
+
+    @Test
+    public void set() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).set(0, 2));
+    }
+
+
+    @Test
+    public void remove() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).remove(2));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).remove((Integer) 2));
     }
 }

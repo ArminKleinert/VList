@@ -40,7 +40,7 @@ class VListListIterator<T> implements ListIterator<T> {
 
     @Override
     public boolean hasPrevious() {
-        return i != 0;
+        return segment != null;
     }
 
     @Override
