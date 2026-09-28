@@ -14,8 +14,7 @@ public class VList<T> extends AbstractSequentialList<T> {
     private final int offset;
 
     private VList(final @Nullable Segment seg, final int offset) {
-        this.base = seg;
-        this.offset = offset;
+        this(List.of(), seg, offset);
     }
 
     /**
@@ -38,29 +37,46 @@ public class VList<T> extends AbstractSequentialList<T> {
      * @param elements
      */
     public VList(final List<T> elements) {
-        if (elements.isEmpty()) {
-            this.base = null;
-            this.offset = 0;
+        this(elements, null, 0);
+    }
+
+    private VList(final @NotNull List<T> inputList,
+                  final @Nullable Segment segment,
+                  int offset) {
+        if (inputList.isEmpty()) {
+            this.base = segment;
+            this.offset = offset;
             return;
         }
 
-        var inputIterator = elements.listIterator(elements.size());
-        var seg = new Segment(null, new Object[1]);
-        var offset = 0;
+        var inputIterator = inputList.listIterator(inputList.size());
+        Segment seg;
 
-        while (true) {
-            while (inputIterator.hasPrevious() && offset >= 0) {
-                seg.elements[offset] = inputIterator.previous();
-                offset--;
-            }
-            if (!inputIterator.hasPrevious()) break;
-            var segElements = new Object[seg.elements.length * 2];
-            offset = segElements.length - 1;
-            seg = new Segment(seg, segElements);
+        if (segment == null) {
+            var elems = new Object[]{inputIterator.previous()};
+            seg = new Segment(null, elems);
+            offset = 0;
+        } else if (offset == 0) {
+            seg = segment;
+        } else {
+            assert (offset > 0);
+            seg = new Segment(segment.next, segment.elements);
         }
 
-        base = seg;
-        this.offset = offset + 1;
+        while (true) {
+            while (inputIterator.hasPrevious() && offset > 0) {
+                offset--;
+                seg.elements[offset] = inputIterator.previous();
+            }
+            if (!inputIterator.hasPrevious())
+                break;
+            var elements = new Object[seg.elements.length * 2];
+            offset = elements.length;
+            seg = new Segment(seg, elements);
+        }
+
+        this.base = seg;
+        this.offset = offset;
     }
 
     public static <T> VList<T> empty() {
@@ -118,7 +134,7 @@ public class VList<T> extends AbstractSequentialList<T> {
      * @return
      */
     public VList<T> prepend(final @NotNull List<T> elements) {
-        return listIntoSegments(elements, base, offset - 1);
+        return listIntoSegments(elements, base, offset);
     }
 
     public VList<T> append(final T element) {
@@ -175,26 +191,9 @@ public class VList<T> extends AbstractSequentialList<T> {
 
     private static <T> VList<T> listIntoSegments(
             final @NotNull List<T> inputList,
-            final @Nullable Segment mutableSegment,
+            final @Nullable Segment segment,
             int offset) {
-        if (inputList.isEmpty())
-            return new VList<>(null, 0);
-
-        var inputIterator = inputList.listIterator(inputList.size());
-        var seg = mutableSegment == null ? new Segment(null, new Object[1]) : mutableSegment;
-
-        while (true) {
-            while (inputIterator.hasPrevious() && offset >= 0) {
-                seg.elements[offset] = inputIterator.previous();
-                offset--;
-            }
-            if (!inputIterator.hasPrevious()) break;
-            var elements = new Object[seg.elements.length * 2];
-            offset = elements.length - 1;
-            seg = new Segment(seg, elements);
-        }
-
-        return new VList<>(seg, offset + 1);
+        return new VList<>(inputList, segment, offset);
     }
 
     /**
@@ -219,7 +218,7 @@ public class VList<T> extends AbstractSequentialList<T> {
      *
      * @return
      */
-    private @NotNull List<@NotNull List<T>> getSegments() {
+    public @NotNull List<@NotNull List<T>> getSegments() {
         var res = new ArrayList<List<T>>();
         var seg = base;
         while (seg != null) {
@@ -230,6 +229,20 @@ public class VList<T> extends AbstractSequentialList<T> {
         return Collections.unmodifiableList(res);
     }
 
+    public List<T> toList() {
+        var list = new ArrayList<T>();
+        var offset = this.offset;
+        var segment = base;
+        while (segment != null) {
+            for (int i = offset; i < segment.elements.length; i++) {
+                list.add((T) segment.elements[i]);
+            }
+            offset = 0;
+            segment = segment.next;
+        }
+        return Collections.unmodifiableList(list);
+    }
+
     /**
      *
      * @param i
@@ -237,6 +250,7 @@ public class VList<T> extends AbstractSequentialList<T> {
      */
     @Override
     public @NotNull ListIterator<T> listIterator(final int i) {
-        return new VListListIterator<>(base, offset, i);
+//        return new VListListIterator<>(base, offset, i);
+        return toList().listIterator(i);
     }
 }

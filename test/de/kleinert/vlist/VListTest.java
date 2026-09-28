@@ -9,6 +9,13 @@ import java.util.stream.Collectors;
 
 class VListTest {
     @Test
+    void of() {
+        var vl = VList.of(1, 2, 3);
+        Assertions.assertEquals(3, vl.size());
+        Assertions.assertEquals(List.of(1, 2, 3), vl);
+    }
+
+    @Test
     void size() {
         Assertions.assertEquals(0, VList.of().size());
         Assertions.assertEquals(0, VList.listToVList(List.of()).size());
@@ -86,13 +93,19 @@ class VListTest {
         Assertions.assertEquals(
                 List.of(1, 2, 3), VList.of().prepend(List.of(1, 2, 3)));
         Assertions.assertEquals(
-                List.of(3, 4, 5), VList.of(3, 4, 5).prepend(List.of()));
+                List.of(3, 4, 5), VList.of(4, 5).prepend(List.of(3)));
+        Assertions.assertEquals(
+                List.of(3, 4, 5), VList.of(5).prepend(List.of(3, 4)));
         Assertions.assertEquals(
                 List.of(1, 2, 3, 4, 5), VList.of(3, 4, 5).prepend(List.of(1, 2)));
+        Assertions.assertEquals(
+                List.of(3, 4, 5), VList.of(3, 4, 5).prepend(List.of()));
     }
 
     @Test
     public void append() {
+        Assertions.assertEquals(
+                List.of(1, 4), VList.of(1).append(4));
         Assertions.assertEquals(
                 List.of(1, 2, 3, 4, 5), VList.of(1, 2, 3).append(4).append(5));
     }

@@ -25,8 +25,14 @@ class VListListIterator<T> implements ListIterator<T> {
     }
 
     @Override
+    public boolean hasPrevious() {
+        return i > 0;
+    }
+
+    @Override
     public T next() {
-        if (segment == null) throw new NoSuchElementException();
+        if (!hasNext()) throw new NoSuchElementException();
+        assert segment != null;
         var temp = segment.elements[offset];
         offset++;
         i++;
@@ -39,28 +45,31 @@ class VListListIterator<T> implements ListIterator<T> {
     }
 
     @Override
-    public boolean hasPrevious() {
-        return segment != null;
-    }
-
-    @Override
     public T previous() {
-        if (i == 0) throw new NoSuchElementException();
-
-        if (offset > 0) {
-            assert segment != null;
-            //noinspection unchecked
-            return (T) segment.elements[offset];
-        }
-
-        // We are at the beginning of a segment and thus need to go to the previous segment.
-        // Since VList segments are singly-linked, we need to iterate the list from the beginning up to the index.
-        i--;
-        advance(i);
-        return next();
+//        if (i == 0) throw new NoSuchElementException();
+//
+//        if (offset > 0) {
+//            assert segment != null;
+//            i--;
+//            //noinspection unchecked
+//            return (T) segment.elements[offset];
+//        }
+//
+//        // We are at the beginning of a segment and thus need to go to the previous segment.
+//        // Since VList segments are singly-linked, we need to iterate the list from the beginning up to the index.
+//        i--;
+//        advance(i);
+//        return next();
+        // TODO: Optimize
+        var index = i;
+        advance(index-1);
+        var temp = next();
+        advance(index-2);
+        return temp;
     }
 
     private void advance(int index) {
+        i = 0;
         segment = base;
         offset = originOffset;
         while (index > 0 && segment != null) {

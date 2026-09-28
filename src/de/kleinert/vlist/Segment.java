@@ -33,8 +33,8 @@ class Segment {
     @Override
     public String toString() {
         return new StringJoiner(", ", Segment.class.getSimpleName() + "[", "]")
-                .add("next=" + next)
                 .add("elements=" + Arrays.toString(elements))
+                .add("next=" + next)
                 .toString();
     }
 }
