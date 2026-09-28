@@ -201,21 +201,21 @@ class VListTest {
 
     @Test
     public void addAll() {
-        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).addAll(List.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.of(1, 2, 3).addAll(List.of()));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).addAll(List.of(4, 5, 6)));
-        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).addAll(VList.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.of(1, 2, 3).addAll(VList.of()));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).addAll(VList.of(4, 5, 6)));
 
-        Assertions.assertDoesNotThrow(() -> VList.listToVList(List.of(1, 2, 3)).addAll(List.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.listToVList(List.of(1, 2, 3)).addAll(List.of()));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).addAll(List.of(4, 5, 6)));
-        Assertions.assertDoesNotThrow(() -> VList.listToVList(List.of(1, 2, 3)).addAll(VList.of()));
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.listToVList(List.of(1, 2, 3)).addAll(VList.of()));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.listToVList(List.of(1, 2, 3)).addAll(VList.of(4, 5, 6)));
     }
 
 
     @Test
     public void removeAll() {
-        Assertions.assertDoesNotThrow(() -> VList.of(1, 2, 3).removeAll(List.<Integer>of()));
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.of(1, 2, 3).removeAll(List.<Integer>of()));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).removeAll(List.of(1, 2, 3)));
     }
 
@@ -228,7 +228,7 @@ class VListTest {
 
     @Test
     public void clear() {
-        Assertions.assertDoesNotThrow(() -> VList.of().clear());
+        Assertions.assertThrows(UnsupportedOperationException.class,() -> VList.of().clear());
         Assertions.assertThrows(UnsupportedOperationException.class, () -> VList.of(1, 2, 3).clear());
     }
 

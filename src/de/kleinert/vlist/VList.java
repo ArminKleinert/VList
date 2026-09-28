@@ -9,7 +9,7 @@ import java.util.*;
  *
  * @param <T>
  */
-public class VList<T> extends AbstractSequentialList<T> {
+public class VList<T> implements List<T> {
     private final @Nullable Segment base;
     private final int offset;
 
@@ -233,13 +233,19 @@ public class VList<T> extends AbstractSequentialList<T> {
         var list = new ArrayList<T>();
         var offset = this.offset;
         var segment = base;
+
+        if (segment == null) return List.of();
+
+        for (int i = offset; i < segment.elements.length; i++) {
+            list.add((T) segment.elements[i]);
+        }
+
+        segment = segment.next;
         while (segment != null) {
-            for (int i = offset; i < segment.elements.length; i++) {
-                list.add((T) segment.elements[i]);
-            }
-            offset = 0;
+            list.addAll((Collection<? extends T>) Arrays.asList(segment.elements));
             segment = segment.next;
         }
+
         return Collections.unmodifiableList(list);
     }
 
@@ -252,5 +258,157 @@ public class VList<T> extends AbstractSequentialList<T> {
     public @NotNull ListIterator<T> listIterator(final int i) {
 //        return new VListListIterator<>(base, offset, i);
         return toList().listIterator(i);
+    }
+
+    // Other methods with simple implementations.
+
+    @Override
+    public boolean isEmpty() {
+        return base == null;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        for (T t : this) {
+            if (Objects.equals(t, o)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Object @NotNull [] toArray() {
+        return toArray(new Object[0]);
+    }
+
+    @Override
+    public <T1> T1 @NotNull [] toArray(T1 @NotNull [] t1s) {
+        if (t1s.length < size()) t1s = Arrays.copyOf(t1s, size());
+        int i = 0;
+        for (T t : this) {
+            t1s[i] = (T1) t;
+            i++;
+        }
+        return t1s;
+    }
+
+    @Override
+    public boolean add(T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean containsAll(@NotNull Collection<?> collection) {
+        for (Object o : collection) {
+            if (!contains(o)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends T> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(int i, @NotNull Collection<? extends T> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean retainAll(@NotNull Collection<?> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T set(int i, T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void add(int i, T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T remove(int i) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int indexOf(Object o) {
+        int i = 0;
+        for (T t : this) {
+            if (Objects.equals(t, o)) return i;
+            i++;
+        }
+        return -1;
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        int i = 0;
+        int last = -1;
+        for (T t : this) {
+            if (Objects.equals(t, o) && last < i) last = i;
+            i++;
+        }
+        return last;
+    }
+
+    @Override
+    public @NotNull ListIterator<T> listIterator() {
+        return listIterator(0);
+    }
+
+    @Override
+    public @NotNull List<T> subList(int i, int i1) {
+        if (i < 0 || i1 > size() || i1 < i) throw new IllegalArgumentException();
+        return VList.listToVList(toList().subList(i, i1));
+    }
+
+    @Override
+    public String toString() {
+        var sj = new StringJoiner(", ", VList.class.getSimpleName() + "[", "]");
+        for (T t : this) {
+            sj.add(String.valueOf(t));
+        }
+        return sj.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof List<?>)) return false;
+        if (size() != ((List<?>) o).size()) return false;
+
+        var thisIter = iterator();
+        var otherIter = ((List<?>) o).iterator();
+        while (thisIter.hasNext() && otherIter.hasNext())
+            if (!Objects.equals(thisIter.next(), otherIter.next()))
+                return false;
+        return !(thisIter.hasNext() || otherIter.hasNext());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 0;
+        for (T t : this) {
+            result = 31 * result + Objects.hashCode(t);
+        }
+        return result;
     }
 }
