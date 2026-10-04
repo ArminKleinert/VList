@@ -13,31 +13,24 @@ public class VList<T> implements List<T> {
     private final @Nullable Segment base;
     private final int offset;
 
+    public VList(final List<T> elements) {
+        this(elements, null, 0);
+    }
+
+    public VList(final VList<T> elements) {
+        this(elements.base, 0);
+    }
+
     private VList(final @Nullable Segment seg, final int offset) {
         this(List.of(), seg, offset);
     }
 
-    /**
-     *
-     */
     private VList() {
         this(List.of());
     }
 
-    /**
-     *
-     * @param elements
-     */
     private VList(final T[] elements) {
         this(Arrays.asList(elements));
-    }
-
-    /**
-     *
-     * @param elements
-     */
-    public VList(final List<T> elements) {
-        this(elements, null, 0);
     }
 
     private VList(final @NotNull List<T> inputList,
@@ -46,6 +39,12 @@ public class VList<T> implements List<T> {
         if (inputList.isEmpty()) {
             this.base = segment;
             this.offset = offset;
+            return;
+        }
+
+        if (inputList instanceof VList<?> && segment == null && offset == 0) {
+            this.base = ((VList<T>) inputList).base;
+            this.offset = ((VList<T>) inputList).offset;
             return;
         }
 
@@ -79,7 +78,7 @@ public class VList<T> implements List<T> {
         this.offset = offset;
     }
 
-    public static <T> VList<T> empty() {
+    public static <T> @NotNull VList<T> empty() {
         return new VList<>();
     }
 
@@ -94,7 +93,6 @@ public class VList<T> implements List<T> {
      *     size([segmentN, segmentN-1, ...]) = size(segmentN)*2 - 1 - offset
      * </pre>
      *
-     * @return
      */
     @Override
     public int size() {
@@ -109,11 +107,8 @@ public class VList<T> implements List<T> {
      *     cons([fullSegment, ...]) = [[e], fullSegment, ...]
      *     cons([segmentN, ...])    = [[e & segmentN], ...]
      * </pre>
-     *
-     * @param element
-     * @return
      */
-    public VList<T> cons(final T element) {
+    public @NotNull VList<T> cons(final T element) {
         if (offset > 0) {
             assert base != null;
             var newSegmentElements = Arrays.copyOf(base.elements, base.elements.length);
@@ -127,21 +122,15 @@ public class VList<T> implements List<T> {
         return new VList<>(new Segment(base, newSegmentElements), off);
     }
 
-    /**
-     * The same as a repeated application of the {@link cons} operation.
-     *
-     * @param elements
-     * @return
-     */
-    public VList<T> prepend(final @NotNull List<T> elements) {
+    public @NotNull VList<T> prepend(final @NotNull List<T> elements) {
         return listIntoSegments(elements, base, offset);
     }
 
-    public VList<T> append(final T element) {
+    public @NotNull VList<T> append(final T element) {
         return appendAll(List.of(element));
     }
 
-    public VList<T> appendAll(final @NotNull List<T> elements) {
+    public @NotNull VList<T> appendAll(final @NotNull List<T> elements) {
         return listToVList(elements).prepend(this);
     }
 
@@ -156,7 +145,7 @@ public class VList<T> implements List<T> {
      *
      * @return The list without the first element.
      */
-    public VList<T> tail() {
+    public @NotNull VList<T> tail() {
         if (base == null) return this;
         if (offset == base.elements.length) {
             if (base.next == null) return empty();
@@ -165,11 +154,6 @@ public class VList<T> implements List<T> {
         return new VList<>(base, offset + 1);
     }
 
-    /**
-     *
-     * @param index
-     * @return
-     */
     @Override
     public T get(final int index) {
         if (index < 0 || index >= size())
@@ -189,35 +173,25 @@ public class VList<T> implements List<T> {
         throw new IllegalStateException("Impossible state: Index " + index + " out of bounds.");
     }
 
-    private static <T> VList<T> listIntoSegments(
+    private static <T> @NotNull VList<T> listIntoSegments(
             final @NotNull List<T> inputList,
             final @Nullable Segment segment,
             int offset) {
         return new VList<>(inputList, segment, offset);
     }
 
-    /**
-     *
-     * @param inputList
-     * @param <T>
-     * @return
-     */
-    public static <T> VList<T> listToVList(final @NotNull List<T> inputList) {
+    public static <T> @NotNull VList<T> listToVList(final @NotNull List<T> inputList) {
         if (inputList instanceof VList<?>) return (VList<T>) inputList;
         if (inputList.isEmpty()) return empty();
         return listIntoSegments(inputList, null, 0);
     }
 
     @SafeVarargs
-    public static <T> VList<T> of(T... elements) {
+    public static <T> @NotNull VList<T> of(T... elements) {
         if (elements.length == 0) return empty();
         return new VList<>(elements);
     }
 
-    /**
-     *
-     * @return
-     */
     public @NotNull List<@NotNull List<T>> getSegments() {
         var res = new ArrayList<List<T>>();
         var seg = base;
@@ -229,7 +203,7 @@ public class VList<T> implements List<T> {
         return Collections.unmodifiableList(res);
     }
 
-    public List<T> toList() {
+    public @NotNull List<T> toList() {
         var list = new ArrayList<T>();
         var offset = this.offset;
         var segment = base;
@@ -237,11 +211,13 @@ public class VList<T> implements List<T> {
         if (segment == null) return List.of();
 
         for (int i = offset; i < segment.elements.length; i++) {
+            //noinspection unchecked
             list.add((T) segment.elements[i]);
         }
 
         segment = segment.next;
         while (segment != null) {
+            //noinspection unchecked
             list.addAll((Collection<? extends T>) Arrays.asList(segment.elements));
             segment = segment.next;
         }
@@ -249,11 +225,6 @@ public class VList<T> implements List<T> {
         return Collections.unmodifiableList(list);
     }
 
-    /**
-     *
-     * @param i
-     * @return
-     */
     @Override
     public @NotNull ListIterator<T> listIterator(final int i) {
 //        return new VListListIterator<>(base, offset, i);
@@ -276,6 +247,14 @@ public class VList<T> implements List<T> {
     }
 
     @Override
+    public boolean containsAll(@NotNull Collection<?> collection) {
+        for (Object o : collection) {
+            if (!contains(o)) return false;
+        }
+        return true;
+    }
+
+    @Override
     public Object @NotNull [] toArray() {
         return toArray(new Object[0]);
     }
@@ -285,68 +264,11 @@ public class VList<T> implements List<T> {
         if (t1s.length < size()) t1s = Arrays.copyOf(t1s, size());
         int i = 0;
         for (T t : this) {
+            //noinspection unchecked
             t1s[i] = (T1) t;
             i++;
         }
         return t1s;
-    }
-
-    @Override
-    public boolean add(T t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean containsAll(@NotNull Collection<?> collection) {
-        for (Object o : collection) {
-            if (!contains(o)) return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean addAll(@NotNull Collection<? extends T> collection) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean addAll(int i, @NotNull Collection<? extends T> collection) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(@NotNull Collection<?> collection) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(@NotNull Collection<?> collection) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public T set(int i, T t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void add(int i, T t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public T remove(int i) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -410,5 +332,55 @@ public class VList<T> implements List<T> {
             result = 31 * result + Objects.hashCode(t);
         }
         return result;
+    }
+
+    @Override
+    public boolean add(T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends T> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(int i, @NotNull Collection<? extends T> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean retainAll(@NotNull Collection<?> collection) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T set(int i, T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void add(int i, T t) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T remove(int i) {
+        throw new UnsupportedOperationException();
     }
 }

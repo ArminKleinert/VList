@@ -1,13 +1,15 @@
 package de.kleinert.vlist;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 class VListIterator<T> implements Iterator<T> {
     private int offset;
-    private Segment segment;
+    private @Nullable Segment segment;
 
-    VListIterator(int offset, Segment segment) {
+    VListIterator(int offset, @Nullable Segment segment) {
         this.offset = offset;
         this.segment = segment;
     }

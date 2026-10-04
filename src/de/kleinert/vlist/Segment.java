@@ -3,6 +3,7 @@ package de.kleinert.vlist;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -11,7 +12,7 @@ class Segment {
     @Nullable Segment next;
     @NotNull Object[] elements;
 
-    public Segment(@Nullable Segment next, @NotNull Object[] elements) {
+    Segment(@Nullable Segment next, @NotNull Object[] elements) {
         this.next = next;
         this.elements = elements;
     }
