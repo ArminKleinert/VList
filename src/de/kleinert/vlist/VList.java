@@ -193,8 +193,17 @@ public class VList<T> implements List<T> {
     }
 
     public @NotNull List<@NotNull List<T>> getSegments() {
+        if (isEmpty()) {
+            return List.of();
+        }
+
+        assert(base != null);
         var res = new ArrayList<List<T>>();
-        var seg = base;
+
+        //noinspection unchecked
+        res.add((List<T>) Arrays.asList(base.elements).subList(offset, base.elements.length));
+
+        var seg = base.next;
         while (seg != null) {
             //noinspection unchecked
             res.add((List<T>) Arrays.asList(seg.elements));

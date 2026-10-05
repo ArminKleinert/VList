@@ -251,7 +251,7 @@ class VListTest {
         Assertions.assertEquals(List.of(List.of(1)), VList.of(1).getSegments()); // Only one element
         Assertions.assertEquals(List.of(List.of(1, 2), List.of(3)), VList.of(1, 2, 3).getSegments()); // size is power of 2 minus 1
 
-        Assertions.assertEquals(List.of(Arrays.asList(null, 1), List.of(2)), VList.of(1, 2).getSegments()); // offset != 0
+        Assertions.assertEquals(List.of(List.of(1), List.of(2)), VList.of(1, 2).getSegments()); // offset != 0
 
         // Bigger list of segments, offset=0
         Assertions.assertEquals(
@@ -260,7 +260,7 @@ class VListTest {
 
         // Bigger list of segments, offset=15
         Assertions.assertEquals(
-                List.of(Arrays.asList(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1),
+                List.of(List.of(1),
                         List.of(2, 3, 4, 5, 6, 7, 8, 9), List.of(10, 11, 12, 13), List.of(14, 15), List.of(16)),
                 VList.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).getSegments());
     }
