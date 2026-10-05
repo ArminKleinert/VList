@@ -3,6 +3,7 @@ package de.kleinert.vlist;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -245,45 +246,23 @@ class VListTest {
     }
 
     @Test
-    void iterator() {
-        {
-            var vlEmpty = VList.of();
-            var iterEmpty = vlEmpty.iterator();
-            Assertions.assertFalse(iterEmpty.hasNext());
-            Assertions.assertThrows(NoSuchElementException.class, iterEmpty::next);
-        }
-        {
-            var vl2 = VList.of(1, 2);
-            var iter2 = vl2.iterator();
-            Assertions.assertTrue(iter2.hasNext());
-            Assertions.assertEquals(1, iter2.next());
-            Assertions.assertTrue(iter2.hasNext());
-            Assertions.assertEquals(2, iter2.next());
-            Assertions.assertFalse(iter2.hasNext());
-            Assertions.assertThrows(NoSuchElementException.class, iter2::next);
-        }
-        {
-            var vl3 = VList.of(1, 2, 3);
-            var iter3 = vl3.iterator();
-            Assertions.assertTrue(iter3.hasNext());
-            Assertions.assertEquals(1, iter3.next());
-            Assertions.assertTrue(iter3.hasNext());
-            Assertions.assertEquals(2, iter3.next());
-            Assertions.assertTrue(iter3.hasNext());
-            Assertions.assertEquals(3, iter3.next());
-            Assertions.assertFalse(iter3.hasNext());
-            Assertions.assertThrows(NoSuchElementException.class, iter3::next);
-        }
-    }
-
-    @Test
-    void listIterator() {
-
-    }
-
-    @Test
     void getSegments() {
+        Assertions.assertEquals(List.of(), VList.of().getSegments()); // Empty list => no segments
+        Assertions.assertEquals(List.of(List.of(1)), VList.of(1).getSegments()); // Only one element
+        Assertions.assertEquals(List.of(List.of(1, 2), List.of(3)), VList.of(1, 2, 3).getSegments()); // size is power of 2 minus 1
 
+        Assertions.assertEquals(List.of(Arrays.asList(null, 1), List.of(2)), VList.of(1, 2).getSegments()); // offset != 0
+
+        // Bigger list of segments, offset=0
+        Assertions.assertEquals(
+                List.of(List.of(1, 2, 3, 4, 5, 6, 7, 8), List.of(9, 10, 11, 12), List.of(13, 14), List.of(15)),
+                VList.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15).getSegments());
+
+        // Bigger list of segments, offset=15
+        Assertions.assertEquals(
+                List.of(Arrays.asList(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1),
+                        List.of(2, 3, 4, 5, 6, 7, 8, 9), List.of(10, 11, 12, 13), List.of(14, 15), List.of(16)),
+                VList.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).getSegments());
     }
 
     @Test
